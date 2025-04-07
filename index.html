@@ -506,7 +506,7 @@
   </script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-  import { getFirestore, doc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyD1rxrOqujyTehBCmTXf3ey9ZV_2AlO5jQ",
@@ -521,21 +521,26 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  const docRef = doc(db, "stats", "carte-yris");
-  updateDoc(docRef, {
-    vues: increment(1)
-  }).catch(async () => {
-    await setDoc(docRef, { vues: 1, clics_rdv: 0, clics_share: 0, clics_save: 0 });
-  });
+  const uid = new URLSearchParams(window.location.search).get("id");
+  if (uid) {
+    const ref = doc(db, "users", uid);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      const data = snap.data();
+      document.querySelector(".profile-pic").src = data.photo || "";
+      document.querySelector("h2").textContent = data.nom || "Nom";
+      document.querySelector("h2 + h2").textContent = data.specialite || "Spécialité";
+      document.querySelectorAll(".info")[0].innerHTML = `<strong>Adresse</strong><br>${data.adresse || ""}`;
+      document.querySelectorAll(".info")[1].innerHTML = `<strong>Horaires</strong><br>${data.horaires || ""}`;
+    }
+  }
 
-  window.trackFirebaseClick = function(action) {
-    const updates = {};
-    updates[action] = increment(1);
-    updateDoc(docRef, updates);
-  };
+
+  
 </script>
 
   
 
 </body>
 </html>
+
